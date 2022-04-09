@@ -2,23 +2,16 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"voting/api/poll"
 
-	"github.com/streadway/amqp"
+	"github.com/julienschmidt/httprouter"
 )
 
-// type option struct {
-// 	Description string
-// 	Count       int64
-// }
-
-// type poll struct {
-// 	Title   string
-// 	Options []option
-// }
-
 type vote struct {
+	Poll   string `json:"poll"`
 	Option string `json:"option"`
 }
 
@@ -28,51 +21,30 @@ func failOnError(err error, msg string) {
 	}
 }
 
-func connectToAmqp() *amqp.Connection {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672")
-	failOnError(err, "Failed to connect to RabbitMQ.")
-	return conn
+func createPoll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	decoder := json.NewDecoder(r.Body)
+	var p poll.Poll
+	err := decoder.Decode(&p)
+	failOnError(err, "Failed to decode poll")
+	poll := poll.New(p.Title, p.Options)
+
+	fmt.Println(poll)
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	resp := make(map[string]string)
+	resp["title"] = poll.Title
+	json.NewEncoder(w).Encode(resp)
 }
 
-func votes(w http.ResponseWriter, r *http.Request) {
+func votes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	// Decodes body to struct
 	decoder := json.NewDecoder(r.Body)
 	var v vote
 	err := decoder.Decode(&v)
 	failOnError(err, "Failed to decode request body.")
 
-	// Connecto to RabbitMQ
-	conn := connectToAmqp()
-	defer conn.Close()
-
-	// Open channel
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open channel.")
-	defer ch.Close()
-
-	// Declare Queue
-	q, err := ch.QueueDeclare(
-		"votes", // name
-		false,   // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
-	)
-	failOnError(err, "Failed to declare a queue")
-
 	// Publish message
-	body := v.Option
-	err = ch.Publish(
-		"",     // exchange
-		q.Name, // routing key
-		false,  // mandatory
-		false,  // immediate
-		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(body),
-		})
-	failOnError(err, "Failed to publish a message")
+	//body := v.Option
 
 	// Write response
 	w.WriteHeader(http.StatusAccepted)
@@ -82,7 +54,7 @@ func votes(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-func results(w http.ResponseWriter, r *http.Request) {
+func results(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	// Write response
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
@@ -92,8 +64,22 @@ func results(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	router := httprouter.New()
 
-	http.HandleFunc("/api/votes", votes)
-	http.HandleFunc("/api/results", results)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Access-Control-Request-Method") != "" {
+			// Set CORS headers
+			header := w.Header()
+			header.Set("Access-Control-Allow-Methods", header.Get("Allow"))
+			header.Set("Access-Control-Allow-Origin", "*")
+		}
+
+		// Adjust status code to 204
+		w.WriteHeader(http.StatusNoContent)
+	})
+
+	router.POST("/api/polls", createPoll)
+	router.POST("/api/polls/:id/vote", votes)
+	router.GET("/api/polls/:id/results", results)
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
