@@ -32,13 +32,23 @@ func connectToAmqp() *amqp.Connection {
 	return conn
 }
 
-func New(title string, options []Option) *Poll {
-	return &Poll{
+func New(title string, options []Option) (*Poll, error) {
+	// Create poll in memory
+	poll := &Poll{
 		Title:     title,
 		Options:   options,
 		CreatedAt: time.Now(),
 		IsActive:  true,
 	}
+
+	// Save poll to DB
+
+	// Return poll
+	return poll, nil
+}
+
+func (p *Poll) Save() {
+
 }
 
 func (p *Poll) Vote(option string) bool {

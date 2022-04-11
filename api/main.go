@@ -22,12 +22,17 @@ func failOnError(err error, msg string) {
 }
 
 func createPoll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	// Decode poll
 	decoder := json.NewDecoder(r.Body)
 	var p poll.Poll
 	err := decoder.Decode(&p)
 	failOnError(err, "Failed to decode poll")
-	poll := poll.New(p.Title, p.Options)
 
+	// Create poll and save to DB
+	poll, err := poll.New(p.Title, p.Options)
+	failOnError(err, "Failed to create poll")
+
+	// Return poll ID
 	fmt.Println(poll)
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
