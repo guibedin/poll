@@ -1,10 +1,14 @@
 package poll
 
 import (
+	"context"
 	"log"
 	"time"
 
-	"github.com/streadway/amqp"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func failOnError(err error, msg string) {
@@ -13,28 +17,43 @@ func failOnError(err error, msg string) {
 	}
 }
 
+type Vote struct {
+	OptionIDs []string `json:"options"`
+}
+
 type Option struct {
-	pollId      string
-	Description string `json:"description"`
-	Count       int64  `json:"count"`
+	ID          primitive.ObjectID `bson:"_id" json:"id"`
+	Description string             `json:"description"`
+	Count       int64              `json:"count"`
 }
 
 type Poll struct {
-	Title     string    `json:"title"`
-	Options   []Option  `json:"options"`
-	CreatedAt time.Time `json:"createdAt"`
-	IsActive  bool      `json:"isActive"`
+	ID        primitive.ObjectID `bson:"_id" json:"id"`
+	Title     string             `json:"title"`
+	Options   []Option           `json:"options"`
+	CreatedAt time.Time          `json:"createdAt"`
+	IsActive  bool               `json:"isActive"`
 }
 
-func connectToAmqp() *amqp.Connection {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672")
-	failOnError(err, "Failed to connect to RabbitMQ.")
-	return conn
+func connectToMongo(ctx context.Context) *mongo.Client {
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://mongoadmin:secret@localhost:27017"))
+	failOnError(err, "failed to connect to mongo")
+	return client
 }
 
-func New(title string, options []Option) (*Poll, error) {
-	// Create poll in memory
+func New(title string, opts []Option) (*Poll, error) {
+	// Create options with ID
+	var options []Option
+	for _, opt := range opts {
+		options = append(options, Option{
+			ID:          primitive.NewObjectID(),
+			Description: opt.Description,
+			Count:       0,
+		})
+	}
+	// Create poll object
 	poll := &Poll{
+		ID:        primitive.NewObjectID(),
 		Title:     title,
 		Options:   options,
 		CreatedAt: time.Now(),
@@ -42,46 +61,41 @@ func New(title string, options []Option) (*Poll, error) {
 	}
 
 	// Save poll to DB
+	err := poll.Save()
 
 	// Return poll
-	return poll, nil
+	return poll, err
 }
 
-func (p *Poll) Save() {
+func (p *Poll) Save() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
+	client := connectToMongo(ctx)
+	defer client.Disconnect(ctx)
+
+	collection := client.Database("poll").Collection("polls")
+	_, err := collection.InsertOne(ctx, p)
+	failOnError(err, "Failed to save to mongo")
+	return err
 }
 
-func (p *Poll) Vote(option string) bool {
-	// Connecto to RabbitMQ
-	conn := connectToAmqp()
-	defer conn.Close()
+func Get(pollId string) *Poll {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	// Open channel
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open channel.")
-	defer ch.Close()
+	client := connectToMongo(ctx)
+	defer client.Disconnect(ctx)
 
-	// Declare Queue
-	q, err := ch.QueueDeclare(
-		"votes", // name
-		false,   // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
-	)
-	failOnError(err, "Failed to declare a queue")
+	collection := client.Database("poll").Collection("polls")
+	var result *Poll
+	id, _ := primitive.ObjectIDFromHex(pollId)
+	err := collection.FindOne(
+		ctx,
+		bson.M{"_id": id},
+		options.FindOne(),
+	).Decode(&result)
+	failOnError(err, "Failed to FindOne")
 
-	err = ch.Publish(
-		"",     // exchange
-		q.Name, // routing key
-		false,  // mandatory
-		false,  // immediate
-		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(option),
-		})
-	failOnError(err, "Failed to publish a message")
-
-	return true
+	return result
 }

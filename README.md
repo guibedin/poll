@@ -5,14 +5,15 @@ Inspired by the [Voting System Challenge](https://dev.to/zanfranceschi/desafio-s
 
 
 # Local Setup
-### Run PostgreSQL
+### Run MongoDB
 ```
 docker run -d \
-    --name postgres \
-    -e POSTGRES_PASSWORD=password \
-    -e PGDATA=/var/lib/postgresql/data/pgdata \
-    -v ${DB_DATA_PATH}:/var/lib/postgresql/data \
-    postgres
+    --name mongo \
+    -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
+    -e MONGO_INITDB_ROOT_PASSWORD=secret \
+    -p 27017:27017 \
+    -v /home/guilherme/projetos/voting/db_data:/data/db \
+    mongo
 ```
 ### Run RabbitMQ
 ```
