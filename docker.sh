@@ -1,11 +1,16 @@
 # PostgreSQL
 docker run -d \
     --name postgres \
-    -e POSTGRES_PASSWORD=password \
+    -e POSTGRES_USER=poll \
+    -e POSTGRES_PASSWORD=pollpass \
+    -e POSTGRES_DB=poll \
     -e PGDATA=/var/lib/postgresql/data/pgdata \
-    -p 5432:5432
-    -v /home/guilherme/db_data:/var/lib/postgresql/data \
-    postgres
+    -p 5432:5432 \
+    -v /home/guilherme/projetos/db/data:/var/lib/postgresql/data \
+    --rm \
+    guibedin/postgres
+
+psql -h 127.0.0.1 -p 5432 -U poll
 
 # MongoDB
 docker run -d \

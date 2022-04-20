@@ -41,7 +41,7 @@ func connectToMongo(ctx context.Context) *mongo.Client {
 	return client
 }
 
-func New(title string, opts []Option) (*Poll, error) {
+func New(title string, opts []Option) *Poll {
 	// Create options with ID
 	var options []Option
 	for _, opt := range opts {
@@ -60,11 +60,8 @@ func New(title string, opts []Option) (*Poll, error) {
 		IsActive:  true,
 	}
 
-	// Save poll to DB
-	err := poll.Save()
-
 	// Return poll
-	return poll, err
+	return poll
 }
 
 func (p *Poll) Save() error {
