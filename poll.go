@@ -5,22 +5,27 @@ import (
 )
 
 type SqlPoll struct {
-	PollId    int
-	Title     string
-	IsActive  bool
-	CreatedOn time.Time
+	PollId    int       `json:"poll_id"`
+	Title     string    `json:"title"`
+	IsActive  bool      `json:"is_active"`
+	CreatedOn time.Time `json:"created_on"`
 }
 
 type SqlOption struct {
-	OptionId int
-	PollId   int
-	Title    string
-	Votes    int
+	OptionId int    `json:"option_id"`
+	PollId   int    `json:"poll_id"`
+	Title    string `json:"title"`
+	Votes    int    `json:"votes"`
 }
 
 type JsonPoll struct {
 	Title   string       `json:"title"`
 	Options []JsonOption `json:"options"`
+}
+
+type CompletePoll struct {
+	Poll    SqlPoll     `json:"poll"`
+	Options []SqlOption `json:"options"`
 }
 
 type MqVote struct {
@@ -64,26 +69,110 @@ func (p *JsonPoll) Save() int {
 	return id
 }
 
-func Get(id int) (SqlPoll, error) {
+func Get(id int) (CompletePoll, error) {
 	// Connect to DB
 	db := Connect()
 	defer db.Close()
 
 	// Get specific poll
 	pollStmt := `SELECT * FROM polls WHERE poll_id = $1`
+	var sqlPoll SqlPoll
+
 	optionsStmt := `SELECT * FROM options WHERE poll_id = $1`
+	var sqlOptions []SqlOption
+
+	// Query only 1 row with the Poll
+	err := db.QueryRow(pollStmt, id).Scan(&sqlPoll.PollId,
+		&sqlPoll.Title,
+		&sqlPoll.IsActive,
+		&sqlPoll.CreatedOn)
+	if err != nil {
+		panic(err)
+	}
+
+	// Query all Options associated with that Poll ID
+	rows, err := db.Query(optionsStmt, id)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	// Scan through all options to create a list
+	for rows.Next() {
+		var sqlOption SqlOption
+		err = rows.Scan(&sqlOption.OptionId,
+			&sqlOption.PollId,
+			&sqlOption.Title,
+			&sqlOption.Votes)
+		if err != nil {
+			panic(err)
+		}
+		sqlOptions = append(sqlOptions, sqlOption)
+	}
+
+	// Creates the CompletePoll object that will be sent to the client
+	completePoll := CompletePoll{
+		sqlPoll,
+		sqlOptions,
+	}
 
 	// Return poll
-	return SqlPoll{}, nil
+	return completePoll, nil
 }
 
-func GetAll() ([]SqlPoll, error) {
+func GetAll() ([]CompletePoll, error) {
 	// Connect to DB
+	db := Connect()
+	defer db.Close()
 
 	// Get all polls
+	var sqlPolls []SqlPoll
+	var completePolls []CompletePoll
+	pollStmt := `SELECT * FROM polls`
+	optionsStmt := `SELECT * FROM options WHERE poll_id = $1`
+
+	rows, err := db.Query(pollStmt)
+	if err != nil {
+		panic(err)
+	}
+
+	for rows.Next() {
+		var sqlPoll SqlPoll
+		err = rows.Scan(&sqlPoll.PollId,
+			&sqlPoll.Title,
+			&sqlPoll.IsActive,
+			&sqlPoll.CreatedOn)
+		if err != nil {
+			panic(err)
+		}
+		sqlPolls = append(sqlPolls, sqlPoll)
+	}
+
+	for _, sp := range sqlPolls {
+		var sqlOptions []SqlOption
+		rows, err = db.Query(optionsStmt, sp.PollId)
+		if err != nil {
+			panic(err)
+		}
+		for rows.Next() {
+			var sqlOption SqlOption
+			err = rows.Scan(&sqlOption.OptionId,
+				&sqlOption.PollId,
+				&sqlOption.Title,
+				&sqlOption.Votes)
+			if err != nil {
+				panic(err)
+			}
+			sqlOptions = append(sqlOptions, sqlOption)
+		}
+		completePolls = append(completePolls, CompletePoll{
+			sp,
+			sqlOptions,
+		})
+	}
 
 	//Return list of polls
-	return nil, nil
+	return completePolls, nil
 }
 
 func Vote(ids OptionIds) {

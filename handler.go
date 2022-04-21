@@ -70,10 +70,14 @@ func GetPoll(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	json.NewEncoder(w).Encode(poll)
 }
 
-func getPolls(w http.ResponseWriter, r *http.Request) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Get all polls from DB
-
-		// Return list of polls
+func GetPolls(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Get all polls from DB
+	polls, err := GetAll()
+	if err != nil {
+		panic(err)
 	}
+
+	// Return list of polls
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(polls)
 }

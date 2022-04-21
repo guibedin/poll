@@ -24,8 +24,9 @@ func main() {
 	})
 
 	router.POST("/api/polls", voting.CreatePoll)
-	router.POST("/api/polls/:id/vote", voting.VoteOnPoll)
+	router.GET("/api/polls", voting.GetPolls)
 	router.GET("/api/polls/:id/", voting.GetPoll)
+	router.POST("/api/polls/:id/vote", voting.VoteOnPoll)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
