@@ -4,18 +4,28 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/guibedin/voting/internal/create"
-	http2 "github.com/guibedin/voting/internal/http"
-	"github.com/guibedin/voting/internal/read"
-	"github.com/guibedin/voting/internal/vote"
+	"github.com/guibedin/voting"
+	"github.com/julienschmidt/httprouter"
 )
 
 func main() {
+	router := httprouter.New()
 
-	var creator create.Service
-	var reader read.Service
-	var voter vote.Service
+	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Access-Control-Request-Method") != "" {
+			// Set CORS headers
+			header := w.Header()
+			header.Set("Access-Control-Allow-Methods", header.Get("Allow"))
+			header.Set("Access-Control-Allow-Origin", "*")
+		}
 
-	router := http2.Handler()
+		// Adjust status code to 204
+		w.WriteHeader(http.StatusNoContent)
+	})
+
+	router.POST("/api/polls", voting.CreatePoll)
+	router.POST("/api/polls/:id/vote", voting.VoteOnPoll)
+	router.GET("/api/polls/:id/", voting.GetPoll)
+
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

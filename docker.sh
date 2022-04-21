@@ -10,7 +10,7 @@ docker run -d \
     --rm \
     guibedin/postgres
 
-psql -h 127.0.0.1 -p 5432 -U poll
+psql -h localhost -p 5432 -U poll
 
 # MongoDB
 docker run -d \
