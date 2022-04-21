@@ -1,4 +1,4 @@
-module guibedin/poll
+module github.com/guibedin/voting
 
 go 1.18
 

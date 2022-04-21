@@ -1,12 +1,14 @@
 package http
 
 import (
+	"encoding/json"
 	"net/http"
 
+	"github.com/guibedin/voting/internal/create"
 	"github.com/julienschmidt/httprouter"
 )
 
-func Handler() http.Handler {
+func Handler(c create.Service, r read.Service, u update.Service) http.Handler {
 	router := httprouter.New()
 
 	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -28,39 +30,53 @@ func Handler() http.Handler {
 	return router
 }
 
-// // addPoll returns a handler for POST /api/polls
-// func addPoll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-// 	// Decode poll
-// 	decoder := json.NewDecoder(r.Body)
-// 	var p poll.Poll
-// 	err := decoder.Decode(&p)
-// 	failOnError(err, "Failed to decode poll")
+// addPoll returns a handler for POST /api/polls
+func createPoll(c create.Service) func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		decoder := json.NewDecoder(r.Body)
 
-// 	// Create poll and save to DB
-// 	poll := poll.New(p.Title, p.Options)
-// 	err = poll.Save()
-// 	failOnError(err, "Failed to save poll")
+		var newPoll := create.Poll
+		err := decoder.Decode(&newPoll)
+		if err != nil {
+			log.Fatalf("%s: %s", "Failed to decode body", err)
+		}
 
-// 	// Return poll ID
-// 	resp := make(map[string]string)
-// 	resp["id"] = poll.ID.Hex()
-// 	resp["title"] = poll.Title
+		c.CreatePoll(newPoll)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode("New poll created.")
+	}
+	
+	// // Decode poll
+	// decoder := json.NewDecoder(r.Body)
+	// var p poll.Poll
+	// err := decoder.Decode(&p)
+	// failOnError(err, "Failed to decode poll")
 
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.WriteHeader(http.StatusOK)
-// 	json.NewEncoder(w).Encode(resp)
-// }
+	// // Create poll and save to DB
+	// poll := poll.New(p.Title, p.Options)
+	// err = poll.Save()
+	// failOnError(err, "Failed to save poll")
 
-// // addPoll returns a handler for POST /api/polls
-// func getPoll(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-// 	pollId := ps.ByName("id")
-// 	poll := poll.Get(pollId)
+	// // Return poll ID
+	// resp := make(map[string]string)
+	// resp["id"] = poll.ID.Hex()
+	// resp["title"] = poll.Title
 
-// 	// Write response
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.WriteHeader(http.StatusOK)
-// 	json.NewEncoder(w).Encode(poll)
-// }
+	// w.Header().Set("Content-Type", "application/json")
+	// w.WriteHeader(http.StatusOK)
+	// json.NewEncoder(w).Encode(resp)
+}
+
+// addPoll returns a handler for POST /api/polls
+func getPoll(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	pollId := ps.ByName("id")
+	poll := poll.Get(pollId)
+
+	// Write response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(poll)
+}
 
 // // addPoll returns a handler for POST /api/polls
 // func voteOnPoll(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {

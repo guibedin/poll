@@ -8,7 +8,7 @@ CREATE TABLE polls (
 CREATE TABLE options (
     option_id SERIAL PRIMARY KEY,
     poll_id INT NOT NULL,
-    descripption VARCHAR(255) NOT NULL,
+    description VARCHAR(255) NOT NULL,
     votes INT NOT NULL,
     FOREIGN KEY (poll_id) REFERENCES polls (poll_id)
 );
