@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/guibedin/voting"
+	"github.com/guibedin/poll"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -23,10 +23,10 @@ func main() {
 		w.WriteHeader(http.StatusNoContent)
 	})
 
-	router.POST("/api/polls", voting.CreatePoll)
-	router.GET("/api/polls", voting.GetPolls)
-	router.GET("/api/polls/:id/", voting.GetPoll)
-	router.POST("/api/polls/:id/vote", voting.VoteOnPoll)
+	router.POST("/api/polls", poll.CreatePoll)
+	router.GET("/api/polls", poll.GetPolls)
+	router.GET("/api/polls/:id/", poll.GetPoll)
+	router.POST("/api/polls/:id/vote", poll.VoteOnPoll)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

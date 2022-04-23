@@ -10,7 +10,16 @@ docker run -d \
     --rm \
     guibedin/postgres
 
-psql -h localhost -p 5432 -U poll
+# psql -h localhost -p 5432 -U poll
+
+# RabbitMQ
+docker run -d \
+    --name rabbitmq \
+    -p 15672:15672 \
+    -p 5672:5672 \
+    --rm \
+    rabbitmq:3-management
+
 
 # MongoDB
 docker run -d \
@@ -21,11 +30,3 @@ docker run -d \
     -v /home/guilherme/db_data:/data/db \
     --rm \
     mongo
-
-# RabbitMQ
-docker run -d \
-    --name rabbitmq \
-    -p 15672:15672 \
-    -p 5672:5672 \
-    --rm \
-    rabbitmq:3-management
