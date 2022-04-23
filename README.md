@@ -21,7 +21,7 @@ The `worker` is responsible for receiving that message, reading it from RabbitMQ
 `GET  /api/polls`
 
 Response body:
-```
+```json
 [
     {
         "poll": {
@@ -80,7 +80,7 @@ Response body:
 `POST /api/polls`
 
 Request body:
-```
+```json
 {
     "title": "Poll 1",
     "options": [
@@ -94,7 +94,7 @@ Request body:
 }
 ```
 Response body:
-```
+```json
 {
     "poll_id": 1
 }
@@ -104,7 +104,7 @@ Response body:
 `GET  /api/polls/:id`
 
 Response body:
-```
+```json
 {
     "poll": {
         "poll_id": 1,
@@ -133,7 +133,7 @@ Response body:
 `POST /api/polls/:id/vote`
 
 Request body:
-```
+```json
 {    
     "option_ids": [1, 2]
 }
