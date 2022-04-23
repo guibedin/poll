@@ -1,4 +1,4 @@
-package voting
+package poll
 
 import (
 	"time"
@@ -175,22 +175,22 @@ func GetAll() ([]CompletePoll, error) {
 	return completePolls, nil
 }
 
-func Vote(ids OptionIds) {
+func Vote(vote MqVote) {
 	// Connect to DB
 	db := Connect()
 	defer db.Close()
 
 	// Update all options based on Ids with votes++
 	selectStmt := `SELECT votes FROM options WHERE option_id = $1 AND poll_id = $2`
-	updateStmt := `UPDATE options SET (votes = $1) WHERE option_id = $2 and poll_id = $3`
+	updateStmt := `UPDATE options SET votes = $1 WHERE option_id = $2 and poll_id = $3`
 	var votes int
-	for _, id := range ids {
-		row := db.QueryRow(selectStmt, id)
+	for _, id := range vote.Options {
+		row := db.QueryRow(selectStmt, id, vote.PollId)
 		err := row.Scan(&votes)
 		if err != nil {
 			panic(err)
 		} else {
-			_, err = db.Exec(updateStmt, votes+1, id)
+			_, err = db.Exec(updateStmt, votes+1, id, vote.PollId)
 			if err != nil {
 				panic(err)
 			}

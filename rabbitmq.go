@@ -1,6 +1,7 @@
-package voting
+package poll
 
 import (
+	"encoding/json"
 	"log"
 
 	"github.com/streadway/amqp"
@@ -51,7 +52,7 @@ func send(body []byte) {
 
 }
 
-func receive() {
+func Receive() {
 	conn := connect()
 	defer conn.Close()
 
@@ -90,7 +91,11 @@ func receive() {
 
 	go func() {
 		for d := range msgs {
-			log.Printf("Received a message: %s", d.Body)
+			var vote MqVote
+			json.Unmarshal(d.Body, &vote)
+			log.Printf("Received a message: %+v", vote)
+			Vote(vote)
+			log.Println("Vote processed!")
 		}
 	}()
 

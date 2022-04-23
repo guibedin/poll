@@ -1,4 +1,4 @@
-package voting
+package poll
 
 import (
 	"database/sql"

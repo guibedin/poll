@@ -1,4 +1,4 @@
-package voting
+package poll
 
 import (
 	"encoding/json"
@@ -9,7 +9,6 @@ import (
 )
 
 func CreatePoll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-
 	// Create new poll from r.Body
 	var jPoll JsonPoll
 	err := json.NewDecoder(r.Body).Decode(&jPoll)
