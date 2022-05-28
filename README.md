@@ -1,15 +1,13 @@
 # Poll
 Inspired by the [Voting System Challenge](https://dev.to/zanfranceschi/desafio-sistema-de-votacao-bbb-50e3) by [Zan Franceschi](https://github.com/zanfranceschi).
 
+# Next steps
+- **Tests** - Write tests for this project.
+- **Repositories** - Make a MongoDB and a File repository implementation
+
 # Create your poll
-This is a very simple project that will have other versions in other branches.
 
-In this `flat` version, I created it in the easiest way that I could to make it work. 
-- There is no error handling throughout the code, only `panic`. 
-- There is no package organization, just a flat structure.
-- No use of `interfaces`, just `struct`.
-
-# How it works
+# How it works - **The description bellow is a bit outdated, will work on it in the next commits.**
 This is Poll creation system split up in two parts. One is the server, which receives all requests through HTTP.
 
 When the `server` receives a request to vote, it sends a message to a RabbitMQ queue and returns `HTTP 202 - ACCEPTED` to the client.
