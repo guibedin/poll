@@ -1,6 +1,10 @@
 # Poll
 Inspired by the [Voting System Challenge](https://dev.to/zanfranceschi/desafio-sistema-de-votacao-bbb-50e3) by [Zan Franceschi](https://github.com/zanfranceschi).
 
+### Resources
+- Mat Ryer - [How I build HTTP services after eight years](https://github.com/matryer/2019-talks/tree/master/Mat%20Ryer%20-%20How%20I%20build%20HTTP%20services%20after%20eight%20years)
+- Kat Zien - [Go structure examples](https://github.com/katzien/go-structure-examples)
+
 # Next steps
 - **Tests** - Write tests for this project.
 - **Repositories** - Make a MongoDB and a File repository implementation
