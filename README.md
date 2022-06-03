@@ -7,16 +7,17 @@ Inspired by the [Voting System Challenge](https://dev.to/zanfranceschi/desafio-s
 
 # Next steps
 - **Tests** - Write tests for this project.
-- **Repositories** - Make a MongoDB and a File repository implementation
+- **Front End** - A front end using this application.
+- **Repositories** - Make a MongoDB and a File repository implementation.
 
 # Create your poll
 
-# How it works - **The description bellow is a bit outdated, will work on it in the next commits.**
+# How it works
 This is Poll creation system split up in two parts. One is the server, which receives all requests through HTTP.
 
 When the `server` receives a request to vote, it sends a message to a RabbitMQ queue and returns `HTTP 202 - ACCEPTED` to the client.
 
-The `worker` is responsible for receiving that message, reading it from RabbitMQ, and then updating the Database counting the vote.
+The `consumer` is responsible for reading messages from RabbitM, and then updating the Database counting the vote.
 
 ## Routes
 ###  **Get All Polls** - `GET /api/polls`
@@ -212,7 +213,7 @@ docker run -d \
 To see your RabbitMQ dashboard, access http://localhost:15672/ with the credentials `guest/guest`
 
 ## Server
-`go run cmd/server/main.go`
+`go run cmd/web/main.go`
 
-## Worker
-`go run cmd/worker/main.go`
+## Consumer
+`go run cmd/consumer/main.go`
