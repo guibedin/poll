@@ -6,6 +6,16 @@ import (
 	"github.com/guibedin/poll/consumer/repository"
 )
 
+<<<<<<< HEAD
+=======
+type storageType int
+
+const (
+	sql storageType = iota
+	file
+)
+
+>>>>>>> 0bfecc2a6d667f77f231ab1746dc1b360f89c8b6
 func main() {
 	consumer := consumer.New()
 
