@@ -19,68 +19,86 @@ When the `server` receives a request to vote, it sends a message to a RabbitMQ q
 The `worker` is responsible for receiving that message, reading it from RabbitMQ, and then updating the Database counting the vote.
 
 ## Routes
-###  **Get All Polls**
-`GET  /api/polls`
+###  **Get All Polls** - `GET /api/polls`
 
+Example request:
+```sh
+curl --location --request GET 'localhost:8080/api/polls/'
+```
 Response body:
 ```json
 [
     {
-        "poll": {
-            "poll_id": 1,
-            "title": "Poll 1",
-            "is_active": true,
-            "created_on": "2022-04-23T10:43:46.414589Z"
-        },
+        "id": 1,
+        "title": "Poll 1",
+        "is_active": true,
+        "is_multiple_choice": true,
         "options": [
             {
-                "option_id": 1,
-                "poll_id": 1,
+                "id": 1,
                 "title": "Option 1",
-                "votes": 0
+                "votes": 9,
+                "created_at": "2022-05-26T23:26:31.009656Z",
+                "updated_at": "2022-05-26T23:26:31.009656Z"
             },
             {
-                "option_id": 2,
-                "poll_id": 1,
+                "id": 2,
                 "title": "Option 2",
-                "votes": 0
+                "votes": 5,
+                "created_at": "2022-05-26T23:26:31.013177Z",
+                "updated_at": "2022-05-26T23:26:31.013177Z"
             }
-        ]
+        ],
+        "created_at": "2022-05-26T23:26:31.0062Z",
+        "updated_at": "2022-05-26T23:26:31.0062Z"
     },
     {
-        "poll": {
-            "poll_id": 2,
-            "title": "Poll 2",
-            "is_active": true,
-            "created_on": "2022-04-23T10:45:01.722008Z"
-        },
+        "id": 2,
+        "title": "Poll 2",
+        "is_active": false,
+        "is_multiple_choice": false,
         "options": [
             {
-                "option_id": 3,
-                "poll_id": 2,
+                "id": 3,
                 "title": "Option 3",
-                "votes": 0
+                "votes": 5,
+                "created_at": "2022-05-26T23:26:41.997339Z",
+                "updated_at": "2022-05-26T23:26:41.997339Z"
             },
             {
-                "option_id": 4,
-                "poll_id": 2,
+                "id": 4,
                 "title": "Option 4",
-                "votes": 0
-            },
-            {
-                "option_id": 5,
-                "poll_id": 2,
-                "title": "Option 5",
-                "votes": 0
+                "votes": 5,
+                "created_at": "2022-05-26T23:26:42.001372Z",
+                "updated_at": "2022-05-26T23:26:42.001372Z"
             }
-        ]
+        ],
+        "created_at": "2022-05-26T23:26:41.993744Z",
+        "updated_at": "2022-05-26T23:26:41.993744Z"
     }
 ]
 ```
 
-### **Create New Poll**
-`POST /api/polls`
+### **Create New Poll** - `POST /api/polls`
 
+Example Request:
+```sh
+curl --location --request POST 'localhost:8080/api/polls' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "title": "Poll 1",
+    "is_active": true,
+    "is_multiple_choice": true,
+    "options": [
+        {
+            "title": "Option 1"
+        },
+        {
+            "title": "Option 2"
+        }
+    ]
+}'
+```
 Request body:
 ```json
 {
@@ -102,43 +120,63 @@ Response body:
 }
 ```
 
-### **Get Poll By ID**
-`GET  /api/polls/:id`
+### **Get Poll By ID** - `GET /api/polls/:id`
+
+Example request:
+```sh
+curl --location --request GET 'localhost:8080/api/polls/1'
+```
 
 Response body:
 ```json
 {
-    "poll": {
-        "poll_id": 1,
-        "title": "Poll 1",
-        "is_active": true,
-        "created_on": "2022-04-23T10:43:46.414589Z"
-    },
+    "id": 1,
+    "title": "Poll 1",
+    "is_active": true,
+    "is_multiple_choice": true,
     "options": [
         {
-            "option_id": 1,
-            "poll_id": 1,
+            "id": 1,
             "title": "Option 1",
-            "votes": 0
+            "votes": 9,
+            "created_at": "2022-05-26T23:26:31.009656Z",
+            "updated_at": "2022-05-26T23:26:31.009656Z"
         },
         {
-            "option_id": 2,
-            "poll_id": 1,
+            "id": 2,
             "title": "Option 2",
-            "votes": 0
+            "votes": 5,
+            "created_at": "2022-05-26T23:26:31.013177Z",
+            "updated_at": "2022-05-26T23:26:31.013177Z"
         }
-    ]
+    ],
+    "created_at": "2022-05-26T23:26:31.0062Z",
+    "updated_at": "2022-05-26T23:26:31.0062Z"
 }
 ```
 
-### **Vote**
-`POST /api/polls/:id/vote`
+### **Single Option Vote** - `POST /api/polls/:id/vote`
 
-Request body:
-```json
-{    
-    "option_ids": [1, 2]
-}
+Example request:
+```sh
+curl --location --request POST 'localhost:8080/api/polls/1/vote' \
+--header 'Content-Type: application/json' \
+--data-raw '{    
+    "voter": "voter",
+    "option_id": 1
+}'
+```
+
+### **Multiple Options Vote** - `POST /api/polls/:id/votes`
+
+Example request:
+```sh
+curl --location --request POST 'localhost:8080/api/polls/2/votes' \
+--header 'Content-Type: application/json' \
+--data-raw '{    
+    "voter": "voter",
+    "option_ids": [3, 4]
+}'
 ```
 
 # Local Setup
