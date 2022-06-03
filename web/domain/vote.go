@@ -8,8 +8,6 @@ type Vote struct {
 }
 
 type VoteRepository interface {
-	GetVote() (Vote, error)
-	GetVotes() ([]Vote, error)
 	GetVotesByOptionID(id int) ([]Vote, error)
 	GetVoteCountByOptionID(id int) (int, error)
 	AddVote(v Vote) error

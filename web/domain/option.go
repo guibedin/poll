@@ -12,7 +12,6 @@ type Option struct {
 }
 
 type OptionRepository interface {
-	GetOption() (Option, error)
 	GetOptionsByPollID(id int) ([]Option, error)
 	AddOption(o Option, pollId int) int
 }

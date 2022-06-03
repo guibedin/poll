@@ -4,31 +4,23 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/guibedin/poll/web/repository"
 	"github.com/guibedin/poll/web/server"
 	"github.com/guibedin/poll/web/service"
-)
-
-type storageType int
-
-const (
-	sql  storageType = 1
-	file storageType = 2
 )
 
 func main() {
 	server := server.New()
 
-	// Setup service
-	var svc service.Service
-	svcType := sql
+	// Set repository type
+	repoType := repository.Sql
 
-	switch svcType {
-	case sql:
-		svc = service.NewSqlService()
-	case file:
-		svc = service.NewFileService()
-	}
+	// Setup service
+	svc := service.New(repository.New(repoType))
+
+	// Setup server
 	server.SetService(svc)
 
+	// Start server
 	log.Fatal(http.ListenAndServe(":8080", server))
 }
