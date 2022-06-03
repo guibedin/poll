@@ -6,10 +6,6 @@ type Service struct {
 	repo repository.Repository
 }
 
-func NewSqlService() Service {
-	return Service{repository.NewSqlRepository()}
-}
-
-func NewFileService() Service {
-	return Service{repository.NewFileRepository()}
+func New(repo repository.Repository) Service {
+	return Service{repo}
 }

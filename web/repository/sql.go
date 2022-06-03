@@ -139,10 +139,6 @@ func (r *sqlRepository) AddPoll(p domain.Poll) int {
 	return id
 }
 
-func (r *sqlRepository) GetOption() (domain.Option, error) {
-	return domain.Option{}, nil
-}
-
 // GetOptionsByPollID returns all options from a given Poll
 func (r *sqlRepository) GetOptionsByPollID(id int) ([]domain.Option, error) {
 	var options []domain.Option
@@ -202,14 +198,6 @@ func (r *sqlRepository) GetVoteCountByOptionID(id int) (int, error) {
 	}
 
 	return votes, nil
-}
-
-func (r *sqlRepository) GetVote() (domain.Vote, error) {
-	return domain.Vote{}, nil
-}
-
-func (r *sqlRepository) GetVotes() ([]domain.Vote, error) {
-	return []domain.Vote{}, nil
 }
 
 func (r *sqlRepository) GetVotesByOptionID(id int) ([]domain.Vote, error) {

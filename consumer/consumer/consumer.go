@@ -22,7 +22,7 @@ func (c *Consumer) SetMQ(mq *amqp.Connection) {
 	c.mq = mq
 }
 
-func (c *Consumer) Receive() {
+func (c *Consumer) Receive(queue string) {
 
 	ch, err := c.mq.Channel()
 	if err != nil {
@@ -31,12 +31,12 @@ func (c *Consumer) Receive() {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"votes", // name
-		false,   // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
+		queue, // name
+		false, // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
 	)
 	if err != nil {
 		panic(err)

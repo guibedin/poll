@@ -9,23 +9,16 @@ import (
 type storageType int
 
 const (
-	sql  storageType = 1
-	file storageType = 2
+	sql storageType = iota
+	file
 )
 
 func main() {
 	consumer := consumer.New()
 
-	var repo repository.Repository
-	repoType := sql
-	switch repoType {
-	case sql:
-		repo = repository.NewSqlRepository()
-	case file:
-		repo = repository.NewFileRepository()
-	}
 	consumer.SetMQ(mq.NewMQConnection())
-	consumer.SetRepository(repo)
+	// Set repository type
+	consumer.SetRepository(repository.New(repository.Sql))
 
-	consumer.Receive()
+	consumer.Receive("votes")
 }
