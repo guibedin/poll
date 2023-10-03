@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	host     = "localhost"
+	host     = "postgres"
 	port     = 5432
 	user     = "poll"
 	password = "pollpass"
@@ -44,7 +44,7 @@ func NewSqlRepository() *sqlRepository {
 	log.Println("Server connected to PostgreSQL")
 
 	// Get MQ connection
-	mq, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	mq, err := amqp.Dial("amqp://guest:guest@rabbit:5672/")
 	if err != nil {
 		panic(err)
 	}

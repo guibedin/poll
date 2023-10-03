@@ -1,0 +1,77 @@
+version: "3.7"
+services:
+  psql:
+    image: guibedin/postgres
+    hostname: postgres
+    volumes:
+      - type: "bind"
+        source: /shared/db_data
+        target: /var/lib/postgresql/data
+    networks:
+      - backend
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=poll
+      - POSTGRES_PASSWORD=pollpass
+      - POSTGRES_DB=poll
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.type == db"
+
+  rabbit:
+    image: rabbitmq:3-management
+    hostname: rabbit
+    networks:
+      - backend
+    ports:
+      - 15672:15672
+      - 5672:5672
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.type == mq"
+
+  consumer:
+    image: guibedin/consumer
+    depends_on:
+      - psql
+      - rabbit
+    networks:
+      - backend
+    deploy:
+      mode: replicated
+      replicas: 1 
+      placement:
+        constraints:
+          - "node.labels.type == consumer"
+      restart_policy:
+        condition: on-failure
+
+  web:
+    image: guibedin/web
+    networks:
+      - backend
+    ports:
+      - 8080:8080
+    depends_on:
+      - psql
+      - rabbit
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.type == app"
+      restart_policy:
+        condition: on-failure
+
+networks:
+  backend:
+

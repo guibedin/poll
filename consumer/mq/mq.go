@@ -8,7 +8,7 @@ import (
 
 func NewMQConnection() *amqp.Connection {
 	// Get MQ connection
-	mq, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	mq, err := amqp.Dial("amqp://guest:guest@rabbit:5672/")
 	if err != nil {
 		panic(err)
 	}
